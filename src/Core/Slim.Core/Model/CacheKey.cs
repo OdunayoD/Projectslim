@@ -6,6 +6,15 @@ namespace Slim.Core.Model
     {
         None,
         GetRazorPages,
-        GetPageSections
+        GetPageSections,
+        UploadImage,
+        ProductCategories,
+        GetProducts,
+        GetComments,
+        GetReviews,
+        GetShoppingCartItem,
+        AddThisUsersComment,
+        UserProfileImage,
+        AddThisUsersReview
     }
 }

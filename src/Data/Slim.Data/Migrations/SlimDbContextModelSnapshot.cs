@@ -220,7 +220,7 @@ namespace Slim.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Slim.Data.Entity.PageImage", b =>
+            modelBuilder.Entity("Slim.Data.Entity.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -228,9 +228,17 @@ namespace Slim.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<byte[]>("ActualImage")
+                    b.Property<string>("CategoryDescription")
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CategoryTags")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -238,10 +246,45 @@ namespace Slim.Data.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(500)");
+                    b.Property<bool?>("Enabled")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValueSql("((1))");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("RazorPageId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RazorPageId");
+
+                    b.ToTable("Category", "slm");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.Comment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("Enabled")
                         .IsRequired()
@@ -249,21 +292,78 @@ namespace Slim.Data.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValueSql("((1))");
 
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime");
 
-                    b.Property<string>("PageImageName")
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserComment")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("PageImage", "slm");
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("Comment", "slm");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.Image", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<bool?>("Enabled")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValueSql("((1))");
+
+                    b.Property<Guid>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValue(new Guid("482faa8c-78fb-4ff8-9b66-5a974b483238"));
+
+                    b.Property<bool>("IsPrimaryImage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("UploadedImage")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("Image", "slm");
                 });
 
             modelBuilder.Entity("Slim.Data.Entity.PageSection", b =>
@@ -294,10 +394,10 @@ namespace Slim.Data.Migrations
                     b.Property<bool>("HasImage")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
-                        .HasDefaultValueSql("((1))");
+                        .HasDefaultValueSql("((0))");
 
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime");
@@ -316,34 +416,6 @@ namespace Slim.Data.Migrations
                     b.HasIndex("RazorPageId");
 
                     b.ToTable("PageSection", "slm");
-                });
-
-            modelBuilder.Entity("Slim.Data.Entity.PageSectionImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("PageImageId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RazorPageId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RazorPageSectionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PageImageId");
-
-                    b.HasIndex("RazorPageId");
-
-                    b.HasIndex("RazorPageSectionId");
-
-                    b.ToTable("PageSectionImage", "slm");
                 });
 
             modelBuilder.Entity("Slim.Data.Entity.PageSectionResource", b =>
@@ -372,6 +444,106 @@ namespace Slim.Data.Migrations
                     b.HasIndex("ResourceActionId");
 
                     b.ToTable("PageSectionResource", "slm");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.Product", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int?>("CategoryId")
+                        .IsRequired()
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<bool?>("Enabled")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValueSql("((1))");
+
+                    b.Property<bool>("IsNewProduct")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsOnSale")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsTrending")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("ProductDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProductQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductTags")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RazorPageId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("SalePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("StandardPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("RazorPageId");
+
+                    b.ToTable("Product", "slm");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.ProductImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("ImageId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImageId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductImage", "slm");
                 });
 
             modelBuilder.Entity("Slim.Data.Entity.RazorPage", b =>
@@ -457,8 +629,8 @@ namespace Slim.Data.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValueSql("((1))");
 
-                    b.Property<int?>("ModifiedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime");
@@ -477,6 +649,143 @@ namespace Slim.Data.Migrations
                     b.HasIndex(new[] { "ResourceAction1", "Enabled" }, "NC_slim_ResourceAction_ResourceAction_Enabled");
 
                     b.ToTable("ResourceAction", "slm");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.Review", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Cons")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("Enabled")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValueSql("((1))");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Pros")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserReview")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("Review", "slm");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.ShoppingCart", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CartUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<bool?>("Enabled")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValueSql("((1))");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ShoppingCart", "slm");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.UserPageImage", b =>
+                {
+                    b.Property<Guid>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<bool?>("Enabled")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValueSql("((1))");
+
+                    b.Property<string>("ImageDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<byte[]>("UploadedImage")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.HasKey("ImageId");
+
+                    b.ToTable("UserPageImages");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -530,6 +839,41 @@ namespace Slim.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Slim.Data.Entity.Category", b =>
+                {
+                    b.HasOne("Slim.Data.Entity.RazorPage", "RazorPage")
+                        .WithMany("Categories")
+                        .HasForeignKey("RazorPageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_Category_RazorPage");
+
+                    b.Navigation("RazorPage");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.Comment", b =>
+                {
+                    b.HasOne("Slim.Data.Entity.Product", "Product")
+                        .WithMany("Comments")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Comment_Product");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.Image", b =>
+                {
+                    b.HasOne("Slim.Data.Entity.Product", "Product")
+                        .WithMany("Images")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Slim.Data.Entity.PageSection", b =>
                 {
                     b.HasOne("Slim.Data.Entity.RazorPage", "RazorPage")
@@ -539,33 +883,6 @@ namespace Slim.Data.Migrations
                         .HasConstraintName("FK_PageSection_PageId");
 
                     b.Navigation("RazorPage");
-                });
-
-            modelBuilder.Entity("Slim.Data.Entity.PageSectionImage", b =>
-                {
-                    b.HasOne("Slim.Data.Entity.PageImage", "PageImage")
-                        .WithMany("PageSectionImages")
-                        .HasForeignKey("PageImageId")
-                        .IsRequired()
-                        .HasConstraintName("FK_PageSectionImage_PageImageId");
-
-                    b.HasOne("Slim.Data.Entity.RazorPage", "RazorPage")
-                        .WithMany("PageSectionImages")
-                        .HasForeignKey("RazorPageId")
-                        .IsRequired()
-                        .HasConstraintName("FK_PageSectionImage_PageId");
-
-                    b.HasOne("Slim.Data.Entity.PageSection", "RazorPageSection")
-                        .WithMany("PageSectionImages")
-                        .HasForeignKey("RazorPageSectionId")
-                        .IsRequired()
-                        .HasConstraintName("FK_PageSectionImage_SectionId");
-
-                    b.Navigation("PageImage");
-
-                    b.Navigation("RazorPage");
-
-                    b.Navigation("RazorPageSection");
                 });
 
             modelBuilder.Entity("Slim.Data.Entity.PageSectionResource", b =>
@@ -595,6 +912,48 @@ namespace Slim.Data.Migrations
                     b.Navigation("ResourceAction");
                 });
 
+            modelBuilder.Entity("Slim.Data.Entity.Product", b =>
+                {
+                    b.HasOne("Slim.Data.Entity.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Product_Category");
+
+                    b.HasOne("Slim.Data.Entity.RazorPage", "RazorPage")
+                        .WithMany("Products")
+                        .HasForeignKey("RazorPageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Product_RazorPage");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("RazorPage");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.ProductImage", b =>
+                {
+                    b.HasOne("Slim.Data.Entity.Image", "Image")
+                        .WithMany("ProductImages")
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ProductImage_ImageImg");
+
+                    b.HasOne("Slim.Data.Entity.Product", "Product")
+                        .WithMany("ProductImages")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_ProductImage_ProductProd");
+
+                    b.Navigation("Image");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Slim.Data.Entity.RazorPageResourceActionMap", b =>
                 {
                     b.HasOne("Slim.Data.Entity.RazorPage", "RazorPage")
@@ -614,25 +973,64 @@ namespace Slim.Data.Migrations
                     b.Navigation("ResourceAction");
                 });
 
-            modelBuilder.Entity("Slim.Data.Entity.PageImage", b =>
+            modelBuilder.Entity("Slim.Data.Entity.Review", b =>
                 {
-                    b.Navigation("PageSectionImages");
+                    b.HasOne("Slim.Data.Entity.Product", "Product")
+                        .WithMany("Reviews")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Review_Product");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.ShoppingCart", b =>
+                {
+                    b.HasOne("Slim.Data.Entity.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.Category", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.Image", b =>
+                {
+                    b.Navigation("ProductImages");
                 });
 
             modelBuilder.Entity("Slim.Data.Entity.PageSection", b =>
                 {
-                    b.Navigation("PageSectionImages");
-
                     b.Navigation("PageSectionResources");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.Product", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Images");
+
+                    b.Navigation("ProductImages");
+
+                    b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("Slim.Data.Entity.RazorPage", b =>
                 {
-                    b.Navigation("PageSectionImages");
+                    b.Navigation("Categories");
 
                     b.Navigation("PageSectionResources");
 
                     b.Navigation("PageSections");
+
+                    b.Navigation("Products");
 
                     b.Navigation("RazorPageResourceActionMaps");
                 });

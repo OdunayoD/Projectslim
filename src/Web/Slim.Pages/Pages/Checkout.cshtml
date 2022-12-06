@@ -1,0 +1,177 @@
+﻿@page "{isRedirect:bool?}";
+
+@using System.Security.Claims
+@using Slim.Data.Entity
+@using Slim.Pages.Extensions
+@model Slim.Pages.Pages.CheckoutModel
+@inject Slim.Shared.Interfaces.Serv.ICartService _cartService;
+@inject Slim.Shared.Interfaces.Repo.IBaseStore<UserPageImage> _userPageImageRepo
+
+@{
+    var imgPrimary = string.Empty;
+    var userImage = _userPageImageRepo.GetAll().FirstOrDefault(x => x.CreatedBy == User.Identity?.Name && x.ImageDescription == "Profile Image");
+}
+
+<div class="page-title-overlap bg-dark pt-4">
+    <div class="container d-lg-flex justify-content-between py-2 py-lg-3">
+        <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb breadcrumb-light flex-lg-nowrap justify-content-center justify-content-lg-start">
+                    <li class="breadcrumb-item"><a class="text-nowrap" asp-page="/Index"><i class="bi bi-home"></i>Home</a></li>
+                    <li class="breadcrumb-item text-nowrap">
+                        <a asp-page="/Lashes">Lashes</a>
+                    </li>
+                    <li class="breadcrumb-item text-nowrap active" aria-current="page">Checkout</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="order-lg-1 pe-lg-4 text-center text-lg-start">
+            <h1 class="h3 text-light mb-0">Checkout</h1>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5 mb-2 mb-md-4">
+
+    <div class="row">
+        <section class="col-lg-8">
+            <!-- Steps-->
+            <div class="steps steps-light pt-2 pb-3 mb-5">
+                <a class="step-item active" asp-page="/Cart">
+                    <div class="step-progress"><span class="step-count">1</span></div>
+                    <div class="step-label"><i class="bi bi-cart"></i>Cart</div>
+                </a>
+                <a class="step-item active current" asp-page="/Checkout">
+                    <div class="step-progress"><span class="step-count">2</span></div>
+                    <div class="step-label"><i class="bi bi-user-circle"></i>Details</div>
+                </a>
+                <a class="step-item" asp-page="/Shipping">
+                    <div class="step-progress"><span class="step-count">3</span></div>
+                    <div class="step-label"><i class="bi bi-package"></i>Shipping</div>
+                </a>
+                <a class="step-item" asp-page="/Payment">
+                    <div class="step-progress"><span class="step-count">4</span></div>
+                    <div class="step-label"><i class="bi bi-card"></i>Payment</div>
+                </a>
+                <a class="step-item" asp-page="/Review">
+                    <div class="step-progress"><span class="step-count">5</span></div>
+                    <div class="step-label"><i class="bi bi-check-circle"></i>Review</div>
+                </a>
+            </div>
+            <!-- Autor info-->
+            <div class="d-sm-flex justify-content-between align-items-center bg-secondary p-4 rounded-3 mb-grid-gutter">
+                <div class="d-flex align-items-center">
+                    <div class="img-thumbnail rounded-circle position-relative flex-shrink-0">
+                        <span class="badge bg-warning position-absolute end-0 mt-n2" data-bs-toggle="tooltip" title="Reward points">384</span>
+                        @if (userImage != null)
+                        {
+                            <img class="rounded-circle" src="@imgPrimary.GetImageSrc(userImage.UploadedImage)" width="90" alt="Slim Studio">
+                        }
+                        else
+                        {
+                            <img class="rounded-circle" src="~/img/home/hero-slider/logo.PNG" width="90" alt="Slim Studio">
+                        }
+
+                    </div>
+                    <div class="ps-3">
+                        <h3 class="fs-base mb-0">@User.Claims.Where(x => x.Type == ClaimTypes.Name).Skip(1).FirstOrDefault()?.Value</h3><span class="text-accent fs-sm">@User.Identity?.Name</span>
+                    </div>
+                </div><a class="btn btn-light btn-sm btn-shadow mt-3 mt-sm-0" asp-page="/Account/Manage/Index" asp-area="Identity"><i class="bi bi-edit me-2"></i>Edit profile</a>
+            </div>
+            <!-- Shipping address-->
+            <h2 class="h6 pt-1 pb-3 mb-3 border-bottom">Shipping address</h2>
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <partial name="_StatusMessage" for="StatusMessage" />
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="mb-3">
+                            <label class="form-label" asp-for="Input.FirstName"></label> <span class="text-danger">*</span>
+                            <input asp-for="Input.FirstName" class="form-control" type="text">
+                            <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="mb-3">
+                            <label class="form-label" asp-for="Input.LastName"></label> <span class="text-danger">*</span>
+                            <input asp-for="Input.LastName" class="form-control" type="text">
+                            <span asp-validation-for="Input.LastName" class="text-danger"></span>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="mb-3">
+                            <label class="form-label" asp-for="Input.Email"></label> <span class="text-danger">*</span>
+                            <input asp-for="Input.Email" class="form-control" type="email">
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="mb-3">
+                            <label class="form-label" asp-for="Input.PhoneNumber"></label>
+                            <input asp-for="Input.PhoneNumber" class="form-control" type="text">
+                            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+
+                        </div>
+                    </div>
+                </div>
+
+                <partial name="_AddressPagePartial" for="Input" />
+
+                <!-- Navigation (desktop)-->
+                <div class="d-none d-lg-flex pt-4 mt-3">
+                    <div class="w-50 pe-3"><button class="btn btn-secondary d-block w-100" asp-page="/Cart"><i class="bi bi-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">Back to Cart</span><span class="d-inline d-sm-none">Back</span></button></div>
+                    <div class="w-50 ps-2"><button class="btn btn-primary d-block w-100" type="submit" asp-page-handler="RedirectToShipping"><span class="d-none d-sm-inline">Proceed to Shipping</span><span class="d-inline d-sm-none">Next</span><i class="bi bi-arrow-right mt-sm-0 ms-1"></i></button></div>
+                </div>
+            </form>
+        </section>
+
+        <!-- Sidebar-->
+        <partial name="_OrderSummaryPartial" for="@Model.CartItems" />
+
+    </div>
+
+    <!-- Navigation (mobile)-->
+    <div class="row d-lg-none">
+        <div class="col-lg-8">
+            <div class="d-flex pt-4 mt-3">
+                <div class="w-50 pe-3"><button class="btn btn-secondary d-block w-100" asp-page="/Cart"><i class="bi bi-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">Back to Cart</span><span class="d-inline d-sm-none">Back</span></button></div>
+                <div class="w-50 ps-2"><button class="btn btn-primary d-block w-100" type="submit" asp-page-handler="RedirectToShipping"><span class="d-none d-sm-inline">Proceed to Shipping</span><span class="d-inline d-sm-none">Next</span><i class="bi bi-arrow-right mt-sm-0 ms-1"></i></button></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts
+    {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            // check if checkbox is checked
+            if ($('#checkBilling').is(':checked')) {
+                // if checked, hide the address fields
+                $('#billing').hide();
+            }
+
+            $("#checkBilling").change(function () {
+                debugger;
+                if (this.checked) {
+                    $("#billing").hide();
+                } else {
+                    $("#billing").show();
+                }
+            });
+
+            var priceUrl = '@Url.Page("Cart", "TotalCartPrice")';
+            var cartUrl = '@Url.Page("Cart", "TotalCartCount")';
+
+            GetTotalCartPrice(priceUrl);
+            GetTotalCartItem(cartUrl);
+        });
+    </script>
+}

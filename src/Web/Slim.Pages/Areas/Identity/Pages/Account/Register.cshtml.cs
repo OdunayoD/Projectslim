@@ -2,22 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
+using Slim.Core.Model;
+using Slim.Data.Entity;
+using Slim.Shared.Interfaces.Repo;
 
 namespace Slim.Pages.Areas.Identity.Pages.Account
 {
@@ -29,13 +26,15 @@ namespace Slim.Pages.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly IBaseCart<ShoppingCart> _shoppingCart;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
             IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            IBaseCart<ShoppingCart> shoppingCart)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -43,6 +42,7 @@ namespace Slim.Pages.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _shoppingCart = shoppingCart;
         }
 
         /// <summary>
@@ -70,6 +70,13 @@ namespace Slim.Pages.Areas.Identity.Pages.Account
         /// </summary>
         public class InputModel
         {
+            [Required, Display(Name = "First Name"), DataType(DataType.Text)]
+            public string FirstName { get; set; }
+
+            [Required, Display(Name = "Last Name"), DataType(DataType.Text)]
+            public string LastName { get; set; }
+            
+            
             /// <summary>
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
@@ -110,44 +117,78 @@ namespace Slim.Pages.Areas.Identity.Pages.Account
         {
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var user = CreateUser();
+                return Page();
+            }
+            
+            var user = CreateUser();
 
-                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-                await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-                var result = await _userManager.CreateAsync(user, Input.Password);
+            await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+            await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+            var result = await _userManager.CreateAsync(user, Input.Password);
 
-                if (result.Succeeded)
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.Name, Input.FirstName),
+                new (ClaimTypes.Surname, Input.LastName),
+                new(ClaimTypes.Role, ResourceRole.Read),
+                new(ResourceRole.UserSignUpDate, DateTime.Now.ToString("yyyy-MM-dd"))
+            };
+
+            if (SlmConstant.AdminEmailList.Select(x => x.ToLowerInvariant()).Contains(Input.Email.ToLowerInvariant()))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, ResourceRole.Admin));
+            }
+
+            var addClaimsResult = await _userManager.AddClaimsAsync(user, claims);
+
+            if (result.Succeeded && addClaimsResult.Succeeded)
+            {
+                _logger.LogInformation("User created a new account with password.");
+
+                var defaultSessionId = GetUserDefaultSessionName();
+                if (!string.IsNullOrWhiteSpace(defaultSessionId))
                 {
-                    _logger.LogInformation("User created a new account with password.");
+                    var cartItems = _shoppingCart.GetAllCartItemsByUserId(defaultSessionId);
 
-                    var userId = await _userManager.GetUserIdAsync(user);
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                    var callbackUrl = Url.Page(
-                        "/Account/ConfirmEmail",
-                        pageHandler: null,
-                        values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
-                        protocol: Request.Scheme);
-
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
-                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                    if (cartItems != null && cartItems.Any())
                     {
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
-                    }
-                    else
-                    {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
+                        foreach (var cartItem in cartItems)
+                        {
+                            cartItem.CreatedBy = Input.Email;
+                            cartItem.CartUserId = Input.Email;
+                            cartItem.ModifiedDate = DateTime.UtcNow;
+                            cartItem.ModifiedBy = Input.Email;
+                        }
+
+                        _shoppingCart.UpdateCartItems(cartItems, CacheKey.GetShoppingCartItem, true);
                     }
                 }
-                foreach (var error in result.Errors)
+
+                var userId = await _userManager.GetUserIdAsync(user);
+                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                var callbackUrl = Url.Page(
+                    "/Account/ConfirmEmail",
+                    null,
+                    new { area = "Identity", userId, code, returnUrl },
+                    Request.Scheme);
+
+                await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+                if (_userManager.Options.SignIn.RequireConfirmedAccount)
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl });
                 }
+
+                await _signInManager.SignInAsync(user, false);
+                return LocalRedirect(returnUrl);
+            }
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
             }
 
             // If we got this far, something failed, redisplay form
@@ -166,6 +207,18 @@ namespace Slim.Pages.Areas.Identity.Pages.Account
                     $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
                     $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
             }
+        }
+
+        private string GetUserDefaultSessionName()
+        {
+            var hasSession = HttpContext.Session.GetString(SlmConstant.SessionKeyName);
+            if (string.IsNullOrWhiteSpace(hasSession))
+            {
+                return string.Empty;
+            }
+
+            var sessionName = HttpContext.Session.GetString(SlmConstant.SessionKeyName);
+            return string.IsNullOrEmpty(sessionName) ? string.Empty : sessionName;
         }
 
         private IUserEmailStore<IdentityUser> GetEmailStore()

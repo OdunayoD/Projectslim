@@ -4,6 +4,9 @@
 
 /src/.vs
 /.vs
+/src/Core/Slim.Core/bin/
+/src/Data/Slim.Data/bin/
+/src/Shared/Slim.Shared/bin/
 /src/Core/Slim.Core/bin/Debug/net6.0
 /src/Core/Slim.Core/obj
 /src/Data/Slim.Data/bin/Debug/net6.0
@@ -11,11 +14,16 @@
 /src/Shared/Slim.Shared/obj
 /src/Web/Slim.Pages/bin/Debug/net6.0
 /src/Web/Slim.Pages/obj
+/src/Web/Slim.Pages/Slim.Pages.csproj.user
 /src/.vscode/launch.json
 /src/.vscode/tasks.json
 *.dll
 *.pdb
 */src/Shared/Slim.Shared/obj
+/src/Web/Slim.Pages/Properties
 .DS_Store
-src/Shared/Slim.Shared/bin/Debug/net6.0/Slim.Shared.deps.json
-src/Shared/Slim.Shared/bin/Debug/net6.0/Slim.Shared.pdb
+/src/Shared/Slim.Shared/bin/
+/src/Slim.Web.sln.DotSettings
+/src/Shared/Slim.Shared/bin/Debug/net6.0/Slim.Shared.deps.json
+/src/Shared/Slim.Shared/bin/Debug/net6.0/Slim.Shared.dll
+/src/Shared/Slim.Shared/bin/Debug/net6.0/Slim.Shared.pdb

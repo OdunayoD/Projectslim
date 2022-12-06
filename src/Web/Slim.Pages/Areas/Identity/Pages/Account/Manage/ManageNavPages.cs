@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace  Slim.Pages.Areas.Identity.Pages.Account.Manage
@@ -66,11 +65,15 @@ namespace  Slim.Pages.Areas.Identity.Pages.Account.Manage
         /// </summary>
         public static string WebPagePhotos => "WebPagePhotos";
 
+        public static string AddNewProduct => "AddNewProduct";
+
+        public static string CreateCategory => "CreateCategory";
+
 
         /// <summary>
         /// This is to add new Products
         /// </summary>
-        public static string NewProduct => "NewProduct";        
+        public static string AllProducts => "AllProducts";        
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -92,17 +95,31 @@ namespace  Slim.Pages.Areas.Identity.Pages.Account.Manage
         public static string WebPagePhotosNavClass(ViewContext viewContext) => PageNavClass(viewContext, WebPagePhotos);
 
         /// <summary>
+        /// Add a new product
+        /// </summary>
+        /// <param name="viewContext"></param>
+        /// <returns></returns>
+        public static string AddNewProductClass(ViewContext viewContext) => PageNavClass(viewContext, AddNewProduct);
+        
+        /// <summary>
         /// This page is to add active to the New Product class
         /// </summary>
         /// <param name="viewContext"></param>
         /// <returns></returns>
-        public static string NewProductNavClass(ViewContext viewContext) => PageNavClass(viewContext, NewProduct);
+        public static string AllProductsNavClass(ViewContext viewContext) => PageNavClass(viewContext, AllProducts);
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public static string ChangePasswordNavClass(ViewContext viewContext) => PageNavClass(viewContext, ChangePassword);
+
+        /// <summary>
+        /// This page is to add active to the class
+        /// </summary>
+        /// <param name="viewContext"></param>
+        /// <returns></returns>
+        public static string CreateCategoryNavClass(ViewContext viewContext) => PageNavClass(viewContext, CreateCategory);
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
