@@ -13,8 +13,9 @@ namespace Slim.Core.Model
         GetComments,
         GetReviews,
         GetShoppingCartItem,
-        AddThisUsersComment,
         UserProfileImage,
-        AddThisUsersReview
+        GetWebPages,
+        GetHomePageImages,
+        GetProductDetails
     }
 }

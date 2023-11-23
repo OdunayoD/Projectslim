@@ -14,7 +14,7 @@ namespace Slim.Data.Entity
         public int Quantity { get; set; } = 0;
 
         public int ProductId { get; set; }
-
+        public string BagSize { get; set; } = string.Empty;
         public virtual Product? Product { get; set; }
     }
 }

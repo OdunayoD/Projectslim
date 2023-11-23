@@ -339,7 +339,7 @@ namespace Slim.Data.Migrations
                     b.Property<Guid>("ImageId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
-                        .HasDefaultValue(new Guid("482faa8c-78fb-4ff8-9b66-5a974b483238"));
+                        .HasDefaultValue(new Guid("8ba5af9a-dfec-4c76-8526-35910d4b7120"));
 
                     b.Property<bool>("IsPrimaryImage")
                         .ValueGeneratedOnAdd()
@@ -521,6 +521,63 @@ namespace Slim.Data.Migrations
                     b.HasIndex("RazorPageId");
 
                     b.ToTable("Product", "slm");
+                });
+
+            modelBuilder.Entity("Slim.Data.Entity.ProductDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<bool?>("Enabled")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValueSql("((1))");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HasMaxi")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasMidi")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasMini")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JewelrySize")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ShoeSize")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductDetail", "slm");
                 });
 
             modelBuilder.Entity("Slim.Data.Entity.ProductImage", b =>
@@ -712,6 +769,10 @@ namespace Slim.Data.Migrations
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("BagSize")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CartUserId")
                         .IsRequired()
@@ -933,6 +994,18 @@ namespace Slim.Data.Migrations
                     b.Navigation("RazorPage");
                 });
 
+            modelBuilder.Entity("Slim.Data.Entity.ProductDetail", b =>
+                {
+                    b.HasOne("Slim.Data.Entity.Product", "Product")
+                        .WithMany("ProductDetails")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ProductDetail_Product");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Slim.Data.Entity.ProductImage", b =>
                 {
                     b.HasOne("Slim.Data.Entity.Image", "Image")
@@ -1016,6 +1089,8 @@ namespace Slim.Data.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Images");
+
+                    b.Navigation("ProductDetails");
 
                     b.Navigation("ProductImages");
 

@@ -8,9 +8,9 @@
             {
                 var pages = new List<string>
                 {
-                    "Hair",
-                    "Lip Gloss",
-                    "Lashes"
+                    "Bags",
+                    "Shoes",
+                    "Accessories"
                 };
 
                 return pages;
@@ -23,9 +23,10 @@
             {
                 var emails = new List<string>
                 {
-                    "elizabeth.lucys@hotmail.com",
+                    //"elizabeth.lucys@hotmail.com",
                     "captain@tobikareem.com",
-                    "odunayoadegbaju@yahoo.com"
+                    "odunayoadegbaju@yahoo.com",
+                    "adetunjitemitope11@gmail.com"
                 };
 
                 return emails;
@@ -48,16 +49,20 @@
             };
             }
         }
-        public static List<string> EssentialBillingAddressModel
-        {
-            get
+        public static List<string> EssentialBillingAddressModel =>
+            new()
             {
-                return new List<string>{
                 nameof(AddressModel.BillingAddress1),
                 nameof(AddressModel.BillingAddress2),
                 nameof(AddressModel.BillingZipCode)
             };
-            }
-        }
+
+        public static string[] BagSizes => new[] {
+            "Mini",
+            "Midi",
+            "Maxi"
+        };
+
+        public static string[] Genders => new[] { "Male", "Female", "All" };
     }
 }

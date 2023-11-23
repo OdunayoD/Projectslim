@@ -5,9 +5,30 @@
     ViewData["ActivePage"] = ManageNavPages.AddNewProduct;
 }
 
+<div class="modal fade" id="sizeGuideModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title"> Size Guide</h5>
+            </div>
+
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <partial name="_SizeGuidePartial" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="dismissModal('sizeGuideModal')">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
 
     <div asp-validation-summary="ModelOnly" asp-validation-class="text-danger"></div>
+    <partial name="_StatusMessage" for="StatusMessage" />
     <!-- Section Add new Product -->
     <section class="col-lg-12 pt-lg-4 pb-4 mb-3">
         <div class="pt-2 px-4 ps-lg-0 pe-xl-5">
@@ -25,7 +46,7 @@
                 </div>
 
                 <div id="refreshPage">
-                    <input asp-for="InModel.Id" type="hidden" />
+                    <input asp-for="InModel.Id" type="hidden" id="hiddenProductId" />
 
                     <div class="mb-3 pb-2">
                         <label class="form-label" asp-for="InModel.ProductName"></label>
@@ -85,7 +106,7 @@
                                 <span class="input-group-text"><i class="bi bi-plus"></i></span>
                                 <input class="form-control" asp-for="InModel.ProductQuantity">
                             </div>
-                            <div class="form-text">How many quaunties are in store?</div>
+                            <div class="form-text">How many quantities are in store?</div>
                             <span asp-validation-for="InModel.ProductQuantity" class="text-danger"></span>
                         </div>
                         <div class="col-sm-6 mb-3">
@@ -115,6 +136,58 @@
                             <label class="form-label" asp-for="InModel.IsTrending"></label>
                             <input class="form-check-input" asp-for="InModel.IsTrending" />
                         </div>
+                    </div>
+
+                    <div class="row" id="productHasGender">
+                        <label class="form-label py-2 bg-secondary"> Gender Availability </label>
+                        @foreach (var gender in Model.Genders)
+                        {
+                            <div class="col mb-3">
+                                <label class="form-label" asp-for="InModel.Gender">@gender</label>
+                                <input class="form-check-input" type="radio" asp-for="InModel.Gender" value="@gender">
+                            </div>
+                        }
+                    </div>
+
+                    <div class="row" id="productHasMiniMidiMaxi">
+                        <label class="form-label py-2 bg-secondary"> Size Availability </label>
+                        <div class="col mb-3">
+                            <label class="form-label" asp-for="InModel.HasMini"></label>
+                            <input class="form-check-input" asp-for="InModel.HasMini">
+                        </div>
+                        <div class="col mb-3">
+                            <label class="form-label" asp-for="InModel.HasMidi"></label>
+                            <input class="form-check-input" asp-for="InModel.HasMidi">
+                        </div>
+                        <div class="col mb-3">
+                            <label class="form-label" asp-for="InModel.HasMaxi"></label>
+                            <input class="form-check-input" asp-for="InModel.HasMaxi">
+                        </div>
+                    </div>
+
+                    <div class="row" id="productIsAShoe">
+                        <label class="form-label py-2 bg-secondary"> Shoe Size </label>
+                        <div class="form-text">Select all the shoe sizes that are available.</div>
+
+                        <div class="col-9 mb-3" id="menShoeDropDown">
+                            <select asp-items="Model.AllMenShoeSizesItems" asp-for="SelectedShoeSizes" multiple class="form-select"></select>
+                        </div>
+
+                        <div class="col-9 mb-3" id="womenShoeDropDown">
+                            <select asp-items="Model.AllWomenShoeSizesItems" asp-for="SelectedShoeSizes" multiple class="form-select"></select>
+                        </div>
+
+                        <div class="col-3 text-end mb-3">
+                            <button class="btn btn-sm btn-dark" onclick="onSizeGuideClick()" type="button"> Size Guide </button>
+                        </div>
+                    </div>
+
+                    <div class="row" id="productIsARing">
+                        <label class="form-label py-2 bg-secondary"> Ring Size </label>
+                        <div class="form-text">Select all available sizes of ring.</div>
+
+                        <div class="row" id="ringSizeButton"></div>
+
                     </div>
 
                     <div class="mb-3 py-2">
@@ -147,15 +220,59 @@
 
 @section Scripts {
     <script>
+        $(document).ready(function () {
+            var priceUrl = '@Url.Page("Cart", "TotalCartPrice")';
+            var cartUrl = '@Url.Page("Cart", "TotalCartCount")';
+
+            GetTotalCartPrice(priceUrl);
+            GetTotalCartItem(cartUrl);
+
+            // get the selected value
+            var selectedValue = $('#add-product-category');
+            // get the selected name
+            var selectedName = selectedValue.find("option:selected").text().toLowerCase();
+            filterToShow(selectedName);
+
+            var productId = $('#hiddenProductId').val();
+            if (productId > 0) {
+                // call the ajax method to get the ring size
+
+                $.ajax({
+                    type: 'GET', // define the type of HTTP verb we want to use (POST for our form)
+                    url: '@Url.Page(null, "ReturnRingSizes")', // the url where we want to POST
+
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader("XSRF-TOKEN",
+                            $('input:hidden[name="__RequestVerificationToken"]').val());
+                    },
+                    data: { productId }, // our data object
+                    contentType: "application/json; charset=utf-8",
+                    traditional: true,
+                    async: false,
+                    success: function (data) {
+                        editJewelryRingSize(data, productId);
+                    },
+                    error: function (data) {
+
+                        console.log("couldn't Successfully");
+                    }
+                });
+            }
+
+        });
+
 
         $('#add-product-category').change(function () {
-
             // get the selected value
             var selectedValue = $(this).val();
             var pageId = Number(selectedValue);
+
+            var selectedText = $(this).find("option:selected").text().toLocaleLowerCase();
+            filterToShow(selectedText);
+
             $.ajax({
                 type: 'GET', // define the type of HTTP verb we want to use (POST for our form)
-                url: '@Url.Page(null, "SelectionChanged")',//'/Identity/Account/Manage/WebPagePhotos?handler=SaveWording', // the url where we want to POST
+                url: '@Url.Page(null, "SelectionChanged")', //'/Identity/Account/Manage/WebPagePhotos?handler=SaveWording', // the url where we want to POST
 
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader("XSRF-TOKEN",
@@ -169,28 +286,226 @@
                     // create the option and append to select list product-category
                     var $el = $("#product-category");
                     $el.empty(); // remove old options
-                    $.each(data, function (value, key) {
-                        $el.append($("<option></option>")
-                            .attr("value", key.id).text(key.categoryName));
-                    });
-
+                    $.each(data,
+                        function (value, key) {
+                            $el.append($("<option></option>")
+                                .attr("value", key.id).text(key.categoryName));
+                        });
                 },
                 error: function (data) {
                     console.log("couldn't Successfully");
                 }
+            });
+        });
+
+        $('#product-category').change(function () {
+            // get the selected name
+            var selectedCategory = $('#add-product-category').find("option:selected").text().toLowerCase();
+
+            // get select details from the form for '#product-category'
+            // get the text of the selected option
+            var selectedSubCategory = $(this).find("option:selected").text().toLocaleLowerCase();
+
+            if (selectedCategory.toLowerCase() !== "jewelries") {
+                $('#productIsARing').hide();
+                return;
+            }
+
+            if (selectedSubCategory.toLowerCase() !== "ring") {
+                $('#productHasGender').hide();
+                $('#productIsARing').hide();
+                return;
+            }
+
+            $('#productIsARing').show();
+            $('#productHasGender').hide();
+
+            var productId = $('#hiddenProductId').val();
+            if (productId > 0) {
+                // call the ajax method to get the ring size
+
+                $.ajax({
+                    type: 'GET', // define the type of HTTP verb we want to use (POST for our form)
+                    url: '@Url.Page(null, "ReturnRingSizes")', // the url where we want to POST
+
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader("XSRF-TOKEN",
+                            $('input:hidden[name="__RequestVerificationToken"]').val());
+                    },
+                    data: { productId }, // our data object
+                    contentType: "application/json; charset=utf-8",
+                    traditional: true,
+                    async: false,
+                    success: function (data) {
+                        editJewelryRingSize(data, productId);
+                    },
+                    error: function (data) {
+
+                        console.log("couldn't Successfully");
+                    }
+                });
+
+            } else {
+                filterToShow(selectedName);
+            }
+
+
+
+        });
+
+        function filterToShow(selectedName) {
+            $('#productIsAShoe').hide();
+            $('#womenShoeDropDown').hide();
+            $('#productHasMiniMidiMaxi').hide();
+            $('#productIsARing').hide();
+            switch (selectedName) {
+                case "bags":
+                    $('#productHasMiniMidiMaxi').show();
+                    break;
+                case "shoes":
+                    showShoes();
+                    break;
+                case "jewelries":
+                    showRingSize(false);
+
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        function showShoes() {
+            $('#productIsAShoe').show();
+
+            $('input[name="InModel.Gender"]').change(function () {
+
+                var selectedValue = $(this).val().toLowerCase();
+
+                $('#womenShoeDropDown').hide();
+                $('#menShoeDropDown').hide();
+
+                if (selectedValue === "male" || selectedValue === "all") {
+                    $('#menShoeDropDown').show();
+                } else {
+                    $('#womenShoeDropDown').show();
+                }
 
             });
+        }
 
+        function showRingSize(isEdit) {
+            $('#productIsARing').show();
+            $('#productHasGender').hide();
 
-        });
+            // clear the div id ringSizeButton
+            document.getElementById('ringSizeButton').innerHTML = '';
 
-        $(document).ready(function () {
-            var priceUrl = '@Url.Page("Cart", "TotalCartPrice")';
-            var cartUrl = '@Url.Page("Cart", "TotalCartCount")';
+            var ringSizes = [6, 7, 8, 9, 10, 11, 12];
 
-            GetTotalCartPrice(priceUrl);
-            GetTotalCartItem(cartUrl);
-        });
+            // create a selectable button for each size and append to div id ringSizeButton and add a selected onclick event to each button
+            ringSizes.forEach(function (size) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn btn-sm btn-outline-dark me-2 col';
+                button.innerHTML = size;
+                button.onclick = function () {
+                    this.classList.toggle('btn-dark');
+                    this.classList.toggle('btn-outline-dark');
+
+                    // get all the selected sizes
+                    var selectedSizes = document.querySelectorAll('.btn-dark');
+                    var selectedSizesArray = [];
+                    selectedSizes.forEach(function (size) {
+                        selectedSizesArray.push(size.innerHTML);
+                    });
+
+                    // call the function to update selectedsize
+
+                    updateSelectedRingSize(selectedSizesArray.toString(), 0);
+
+                };
+                document.getElementById('ringSizeButton').appendChild(button);
+            });
+        }
+
+        function editJewelryRingSize(data, productId) {
+            if (data != null) {
+                var $el = $("#ringSizeButton");
+                $el.empty(); // remove old options
+                var ringSizes = [6, 7, 8, 9, 10, 11, 12];
+
+                // create a selectable button for each size and append to div id ringSizeButton and add a selected onclick event to each button
+                // if the size is in the data then add the selected class to the button
+
+                $.each(ringSizes, function (index, value) {
+                    var button = document.createElement("button");
+                    button.type = "button";
+                    button.innerText = value;
+                    button.onclick = function () {
+                        var selected = $(this).hasClass("selected");
+                        if (selected) {
+                            $(this).removeClass("selected");
+                        } else {
+                            $(this).addClass("selected");
+                        }
+
+                        this.classList.toggle("btn-dark");
+                        this.classList.toggle("btn-outline-dark");
+
+                        // get all the selected sizes
+                        var selectedSizes = document.querySelectorAll('.btn-dark');
+                        var selectedSizesArray = [];
+                        selectedSizes.forEach(function (size) {
+                            selectedSizesArray.push(size.innerHTML);
+                        });
+
+                        // call the function to update selectedsize
+
+                        updateSelectedRingSize(selectedSizesArray.toString(), productId);
+                    };
+                    if (data.includes(value)) {
+                        button.className = "btn btn-sm btn-dark me-2 col selected";
+                    } else {
+                        button.className = "btn btn-sm btn-outline-dark me-2 col";
+                    }
+
+                    $el.append(button);
+                });
+
+            }
+            else {
+                var $el = $("#ringSizeButton");
+                $el.empty(); // remove old options
+            }
+
+        }
+
+        function updateSelectedRingSize(selectedSizesArray, productId) {
+            $.ajax({
+                type: 'GET', // define the type of HTTP verb we want to use (POST for our form)
+                url: '@Url.Page(null, "AddRingSizes")', //'/Identity/Account/Manage/WebPagePhotos?handler=SaveWording', // the url where we want to POST
+
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("XSRF-TOKEN",
+                        $('input:hidden[name="__RequestVerificationToken"]').val());
+                },
+                data: { ringSizes: selectedSizesArray, productId }, // our data object
+                contentType: "application/json; charset=utf-8",
+                traditional: true,
+                async: false,
+                success: function (data) {
+
+                },
+                error: function (data) {
+
+                    console.log("couldn't Successfully");
+                }
+            });
+        }
+
+        function onSizeGuideClick() {
+            $('#sizeGuideModal').modal('show');
+        }
 
     </script>
 }

@@ -27,6 +27,7 @@ namespace Slim.Data.Context
         public virtual DbSet<RazorPageResourceActionMap> RazorPageResourceActionMaps { get; set; } = null!;
         public virtual DbSet<ResourceAction> ResourceActions { get; set; } = null!;
         public virtual DbSet<Product> Products { get; set; } = null!;
+        public virtual DbSet<ProductDetail> ProductDetails { get; set; } = null!;
         public virtual DbSet<Category> Categories { get; set; } = null!;
         public virtual DbSet<Comment> Comments { get; set; }
         public virtual DbSet<Review> Reviews { get; set; }
@@ -102,6 +103,22 @@ namespace Slim.Data.Context
                     .WithOne(p => p.Product);
             });
 
+            modelBuilder.Entity<ProductDetail> (entity =>
+            {
+                entity.ToTable("ProductDetail", "slm");
+                entity.Property(e => e.ProductId);
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+                entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
+                entity.Property(e => e.CreatedBy);
+                entity.Property(e => e.ModifiedBy);
+                entity.Property(e => e.Enabled).IsRequired().HasDefaultValueSql("((1))");
+
+                entity.HasOne(d => d.Product)
+                    .WithMany(p => p.ProductDetails)
+                    .HasForeignKey(d => d.ProductId)
+                    .HasConstraintName("FK_ProductDetail_Product");
+            });
+
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.ToTable("Category", "slm");
@@ -151,6 +168,7 @@ namespace Slim.Data.Context
                 entity.Property(e => e.Id).IsRequired();
                 entity.Property(e => e.Quantity);
                 entity.Property(e => e.CartUserId);
+                entity.Property(e => e.BagSize);
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
                 entity.Property(e => e.ModifiedDate).HasColumnType("datetime");
